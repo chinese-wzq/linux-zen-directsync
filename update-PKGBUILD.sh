@@ -64,6 +64,16 @@ curl -sL "$OFFICIAL_URL/-/raw/$TAG/config.x86_64" -o config.x86_64 || {
 }
 
 echo ":: Fetching official source files..."
+echo "  Downloading 0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch..."
+if curl -sL --fail "$OFFICIAL_URL/-/raw/$TAG/0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch" \
+  -o "0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch.tmp" 2>/dev/null; then
+  mv "0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch.tmp" \
+     "0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch"
+  echo "  Downloaded 0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch"
+else
+  rm -f "0001-xfrm-esp-avoid-in-place-decrypt-on-shared-skb-frags.patch.tmp"
+  echo "  Warning: not found in official repo (may have been merged upstream), keeping local copy"
+fi
 
 export TAG OFFICIAL_URL
 
