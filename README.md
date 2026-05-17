@@ -62,4 +62,4 @@ dmesg | grep -i "direct.sync"                     # pr_debug messages (if enable
 
 ## Origin
 
-Based on the official [linux-zen](https://github.com/zen-kernel/zen-kernel) Arch Linux package. DirectSync patches authored by Steven Noonan &lt;steven@uplinklabs.net&gt;.
+Based on the official [linux-zen](https://gitlab.archlinux.org/archlinux/packaging/packages/linux-zen) Arch Linux package. The DirectSync patch set used here was sourced from [misotolar/linux-zen](https://github.com/misotolar/linux-zen); the patches themselves are authored by Steven Noonan &lt;steven@uplinklabs.net&gt;.
