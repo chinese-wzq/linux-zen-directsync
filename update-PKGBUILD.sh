@@ -6,6 +6,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
 OFFICIAL_URL="https://gitlab.archlinux.org/archlinux/packaging/packages/linux-zen"
+ARCH_PKG_URL="https://archlinux.org/packages"
 
 PATCHES=(
   "0001-x86-implement-tsc-directsync-for-systems-without-IA3.patch"
@@ -36,15 +37,49 @@ if [ "$SKIP_PATCHES" = false ]; then
   done
 fi
 
-echo ":: Fetching tag list..."
-TAGS_JSON=$(curl -sL "https://gitlab.archlinux.org/api/v4/projects/archlinux%2Fpackaging%2Fpackages%2Flinux-zen/repository/tags")
-LATEST_TAG=$(echo "$TAGS_JSON" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[0]['name'])")
-EXTRA_TAG=$(echo "$TAGS_JSON" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data[1]['name'])")
+fetch_arch_tag() {
+  local repo="$1"
+  REPO="$repo" ARCH_PKG_URL="$ARCH_PKG_URL" python3 - <<'PY'
+import json
+import os
+import sys
+import urllib.request
 
+repo = os.environ['REPO']
+base = os.environ['ARCH_PKG_URL']
+url = f"{base}/{repo}/x86_64/linux-zen/json/"
+
+with urllib.request.urlopen(url, timeout=10) as response:
+    data = json.load(response)
+
+ver = data.get('pkgver')
+rel = data.get('pkgrel')
+if not ver or rel is None:
+    raise SystemExit('missing pkgver/pkgrel')
+
+print(f"{ver}-{rel}")
+PY
+}
+
+echo ":: Fetching tag info..."
 if [ "$TESTING" = true ]; then
-  TAG="$LATEST_TAG"
-  REPO="extra-testing ($LATEST_TAG)"
+  if ! LATEST_TAG=$(fetch_arch_tag "extra-testing"); then
+    echo ":: extra-testing not available, falling back to extra"
+    if ! LATEST_TAG=$(fetch_arch_tag "extra"); then
+      echo "Failed to fetch linux-zen tag from extra repo"
+      exit 1
+    fi
+    TAG="$LATEST_TAG"
+    REPO="extra ($LATEST_TAG)"
+  else
+    TAG="$LATEST_TAG"
+    REPO="extra-testing ($LATEST_TAG)"
+  fi
 else
+  if ! EXTRA_TAG=$(fetch_arch_tag "extra"); then
+    echo "Failed to fetch linux-zen tag from extra repo"
+    exit 1
+  fi
   TAG="$EXTRA_TAG"
   REPO="extra ($EXTRA_TAG)"
 fi
