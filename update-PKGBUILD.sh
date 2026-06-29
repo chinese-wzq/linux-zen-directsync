@@ -224,14 +224,7 @@ content = re.sub(
     content
 )
 
-# 9. Add linux-zen to replaces in _package()
-content = re.sub(
-    r'(replaces=\(\n\s+\)\n)',
-    r'replaces=(\n    linux-zen\n  )\n',
-    content
-)
-
-# 10. Enable native CPU optimizations in build()
+# 9. Enable native CPU optimizations in build()
 old_build = '''build() {
   cd $_srcname
   make all'''
