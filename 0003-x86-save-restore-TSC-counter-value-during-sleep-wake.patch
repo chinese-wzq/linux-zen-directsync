@@ -11,10 +11,10 @@ Signed-off-by: Steven Noonan <steven@uplinklabs.net>
  3 files changed, 20 insertions(+)
 
 diff --git a/arch/x86/kernel/acpi/sleep.c b/arch/x86/kernel/acpi/sleep.c
-index 3b7f4cdbf2e0..6829d11185f3 100644
+index 91fa262..31761a4 100644
 --- a/arch/x86/kernel/acpi/sleep.c
 +++ b/arch/x86/kernel/acpi/sleep.c
-@@ -102,6 +102,11 @@ int x86_acpi_suspend_lowlevel(void)
+@@ -104,6 +104,11 @@ int x86_acpi_suspend_lowlevel(void)
  			header->pmode_misc_en_high))
  		header->pmode_behavior |=
  			(1 << WAKEUP_BEHAVIOR_RESTORE_MISC_ENABLE);
@@ -27,7 +27,7 @@ index 3b7f4cdbf2e0..6829d11185f3 100644
  	header->real_magic = 0x12345678;
  
 diff --git a/arch/x86/realmode/rm/wakeup.h b/arch/x86/realmode/rm/wakeup.h
-index 0e4fd08ae447..c728d8563de1 100644
+index 3b6d8fa..e52c504 100644
 --- a/arch/x86/realmode/rm/wakeup.h
 +++ b/arch/x86/realmode/rm/wakeup.h
 @@ -23,6 +23,8 @@ struct wakeup_header {
@@ -47,7 +47,7 @@ index 0e4fd08ae447..c728d8563de1 100644
  
  #endif /* ARCH_X86_KERNEL_ACPI_RM_WAKEUP_H */
 diff --git a/arch/x86/realmode/rm/wakeup_asm.S b/arch/x86/realmode/rm/wakeup_asm.S
-index 02d0ba16ae33..0154ef895960 100644
+index 02d0ba1..0154ef8 100644
 --- a/arch/x86/realmode/rm/wakeup_asm.S
 +++ b/arch/x86/realmode/rm/wakeup_asm.S
 @@ -27,6 +27,7 @@ SYM_DATA_START(wakeup_header)
@@ -78,4 +78,3 @@ index 02d0ba16ae33..0154ef895960 100644
  #ifndef CONFIG_64BIT
 -- 
 2.39.0
-

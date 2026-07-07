@@ -13,18 +13,18 @@ Signed-off-by: Steven Noonan <steven@uplinklabs.net>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/x86/kernel/tsc_sync.c b/arch/x86/kernel/tsc_sync.c
-index d9c4e48d93f6..9d7ab87666fe 100644
+index d54da22..061329d 100644
 --- a/arch/x86/kernel/tsc_sync.c
 +++ b/arch/x86/kernel/tsc_sync.c
-@@ -407,7 +407,7 @@ static void check_tsc_sync_source(void *__cpu)
-		pr_debug("TSC synchronization [CPU#%d -> CPU#%u]: passed\n",
-			smp_processor_id(), cpu);
+@@ -399,7 +399,7 @@ retry:
+ 		pr_debug("TSC synchronization [CPU#%d -> CPU#%u]: passed\n",
+ 			smp_processor_id(), cpu);
  
 -	} else if (atomic_dec_and_test(&test_runs) || random_warps) {
 +	} else if (atomic_dec_and_test(&test_runs) || (random_warps && !tsc_allow_direct_sync)) {
  		/* Force it to 0 if random warps brought us here */
  		atomic_set(&test_runs, 0);
  
+
 -- 
 2.39.0
-
