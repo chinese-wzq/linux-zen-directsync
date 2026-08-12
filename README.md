@@ -38,6 +38,7 @@ This enables:
 
 ```bash
 ./update-PKGBUILD.sh
+#or use ./update-PKGBUILD.sh --lld to use lld linker
 makepkg -si
 ```
 

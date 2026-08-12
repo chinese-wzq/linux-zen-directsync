@@ -17,16 +17,41 @@ PATCHES=(
   "0006-x86-disable-tsc-watchdog-if-using-direct-sync.patch"
 )
 
+usage() {
+  cat <<EOF
+Usage: $0 [options]
+
+Generate PKGBUILD and config.x86_64 for linux-zen-directsync
+from the official Arch Linux linux-zen package.
+
+Options:
+  --testing       Track the extra-testing repository (falls back to extra)
+  --no-patches    Do not add the DirectSync patches
+  --lld           Use the lld linker
+  -h, --help      Show this help and exit
+
+Example:
+  $0 --lld        # native CPU tuning + lld linker
+EOF
+}
+
 TESTING=false
 SKIP_PATCHES=false
+USE_LLD=false
 while [ $# -gt 0 ]; do
   case "$1" in
+    -h|--help) usage; exit 0 ;;
     --testing) TESTING=true ;;
     --no-patches) SKIP_PATCHES=true ;;
-    *) echo "Unknown option: $1"; exit 1 ;;
+    --lld) USE_LLD=true ;;
+    *) echo "Unknown option: $1 (run '$0 --help' for usage)" >&2; exit 1 ;;
   esac
   shift
 done
+
+if [ "$USE_LLD" = true ] && ! command -v ld.lld >/dev/null 2>&1; then
+  echo "Warning: ld.lld not found (install the 'lld' package) - the generated PKGBUILD will fail at 'make LD=ld.lld all'"
+fi
 
 if [ "$SKIP_PATCHES" = false ]; then
   for p in "${PATCHES[@]}"; do
@@ -154,7 +179,7 @@ PYEOF
 
 echo ":: Modifying PKGBUILD..."
 
-export SKIP_PATCHES TAG OFFICIAL_URL
+export SKIP_PATCHES TAG OFFICIAL_URL USE_LLD
 
 python3 << 'PYEOF'
 import os, re
@@ -224,20 +249,23 @@ content = re.sub(
     content
 )
 
-# 9. Enable native CPU optimizations in build()
-old_build = '''build() {
-  cd $_srcname
-  make all'''
-new_build = '''build() {
-  cd $_srcname
-
-  echo "Enabling native CPU optimizations..."
-  ./scripts/config --enable MNATIVE
+# 9. Enable native CPU optimizations and lld linker in build()
+use_lld = os.environ.get('USE_LLD') == 'true'
+ld = 'LD=ld.lld ' if use_lld else ''
+old_build = '''  make all
+  make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1'''
+new_build = f'''  echo "Enabling native CPU optimizations..."
+  ./scripts/config --enable X86_NATIVE_CPU
   make olddefconfig
 
-  make all'''
+  make {ld}all
+  make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1'''
 
-content = content.replace(old_build, new_build)
+if old_build in content:
+    content = content.replace(old_build, new_build)
+    print("  build(): injected native CPU optimization" + (" + LD=ld.lld" if use_lld else ""))
+else:
+    print(f"  Warning: official build() body not found, native CPU optimization {"+ LD=ld.lld " if use_lld else ""}injection skipped")
 
 with open('PKGBUILD', 'w') as f:
     f.write(content)
@@ -254,7 +282,3 @@ echo "   Version: $TAG ($REPO)"
 if [ "$SKIP_PATCHES" = false ]; then
   echo "   Patches added: ${#PATCHES[@]} directsync patches"
 fi
-echo ""
-echo "   To build:               makepkg -si"
-echo "   Testing branch:         $0 --testing"
-echo "   Skip custom patches:    $0 --no-patches"
