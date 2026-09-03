@@ -15,14 +15,10 @@ diff --git a/arch/x86/include/asm/tsc.h b/arch/x86/include/asm/tsc.h
 index 4f7f09f..9d67849 100644
 --- a/arch/x86/include/asm/tsc.h
 +++ b/arch/x86/include/asm/tsc.h
-@@ -94,6 +94,7 @@ extern unsigned long native_calibrate_tsc(void);
- extern unsigned long long native_sched_clock_from_tsc(u64 tsc);
- 
+@@ -95,2 +95,3 @@
  extern int tsc_clocksource_reliable;
 +extern int tsc_allow_direct_sync;
- #ifdef CONFIG_X86_TSC
  extern bool tsc_async_resets;
- #else
 diff --git a/arch/x86/kernel/tsc.c b/arch/x86/kernel/tsc.c
 index c5110eb..a1e641d 100644
 --- a/arch/x86/kernel/tsc.c
@@ -96,10 +92,10 @@ index ec3aa34..d54da22 100644
 +{
 +	cycles_t adjval, nextval;
 +
-+	rdmsrl(MSR_IA32_TSC, adjval);
++	rdmsrq(MSR_IA32_TSC, adjval);
 +	adjval += adjustment;
-+	wrmsrl(MSR_IA32_TSC, adjval);
-+	rdmsrl(MSR_IA32_TSC, nextval);
++	wrmsrq(MSR_IA32_TSC, adjval);
++	rdmsrq(MSR_IA32_TSC, nextval);
 +
 +	/*
 +	 * Estimated clock cycle overhead for wrmsr + rdmsr
